@@ -1,51 +1,76 @@
-const express = require("express")
-const bp = require("body-parser")
-const cors = require("cors")
-const app = express()
-const sqlite3 = require("sqlite3")
-const path = require("path")
+const express = require("express");
+const bp = require("body-parser");
+const cors = require("cors");
+const app = express();
+const sqlite3 = require("sqlite3");
+const path = require("path");
 
-app.use(bp.json())
-app.use(bp.urlencoded())
-app.use(cors())
-app.use(express.static(path.join(__dirname,'public')))
+app.use(cors());
+app.use(bp.json());
+app.use(bp.urlencoded({ extended: true })); // ✅ Corrigido
+app.use(express.static(path.join(__dirname, 'public')));
 
-const db = new sqlite3.Database("./db.sqlite")
+const db = new sqlite3.Database("./db.sqlite");
 
 app.listen(8080, () => {
-    console.log("O servidor está aberto na porta 8080")
-})
+  console.log("O servidor está aberto na porta 8080");
+});
 
 db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS Tarefas(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tarefa VARCHAR (50) NOT NULL,
-            categoria VARCHAR(50)
-)`)
-})
-
-
+  db.run(`CREATE TABLE IF NOT EXISTS Tarefas(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tarefa VARCHAR(50) NOT NULL,
+    categoria VARCHAR(50)
+  )`);
+});
 
 app.get("/tarefas", (req, res) => {
-    db.all(`SELECT * FROM Tarefas`, [], (err, rows)=>{
-        res.json(rows)
-    })
-})
+  db.all(`SELECT * FROM Tarefas`, [], (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ erro: "Erro ao buscar tarefas" });
+    }
+    res.json(rows);
+  });
+});
 
 app.post("/tarefa", (req, res) => {
-    db.run(`INSERT INTO Tarefas (tarefa, categoria) VALUES (?, ?)`,[req.body.tarefa,req.body.categoria])
-})
+  const { tarefa, categoria } = req.body;
+
+  if (!tarefa || !categoria) {
+    return res.status(400).json({ erro: "Dados inválidos" });
+  }
+
+  db.run(
+    `INSERT INTO Tarefas (tarefa, categoria) VALUES (?, ?)`,
+    [tarefa, categoria],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ erro: "Erro ao salvar tarefa" });
+      }
+      res.status(201).json({ id: this.lastID }); // ✅ Retorna ID da tarefa criada
+    }
+  );
+});
 
 app.delete("/tarefa/:id", (req, res) => {
-    var id = req.params.id
-    db.run('DELETE FROM Tarefas WHERE id == (?)',[id])
-    
-})
+  const id = req.params.id;
 
-app.get("/home",(req,res)=>{
-    res.sendFile(path.join(__dirname,'index.html'))
-    //res -> resposta  sedFile -> enviar arquivo
-    // index.html -> é o arquivo
-    // root _> indentifica para o servidor qual a pasta raiz
-    //dirname -> directory (pasta)atual
-})
+  db.run(`DELETE FROM Tarefas WHERE id = ?`, [id], function (err) {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ erro: "Erro ao excluir tarefa" });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ erro: "Tarefa não encontrada" });
+    }
+
+    res.json({ sucesso: true });
+  });
+});
+
+app.get("/home", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
