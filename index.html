@@ -1,145 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        body {
-            background-color: black;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        button {
-            width: 75px;
-            height: 20px;
-            background-color: red;
-        }
-
-        .salvar {
-            background-color: antiquewhite;
-        }
-
-        .alinhar {
-            display: flex;
-            gap: 5px;
-        }
-
-        input {
-            width: 100px;
-            height: 15px;
-        }
-
-        ol {
-            background-color: darkgray;
-            width: 300px;
-            height: 200px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
-            border: solid 3px rgb(74, 74, 74);
-            font-size: 25px;
-            text-align: left;
-            gap: 8px;
-            overflow-y: auto;
-        }
-
-        span {
-            max-width: max-content;
-        }
-
-        h1 {
-            font-size: 50px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teste Tarefas</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .alinhar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      height: 30px;
+      font-size: 16px;
+    }
+    button.salvar {
+      background-color: antiquewhite;
+      color: black;
+    }
+    ol {
+      background-color: darkgray;
+      color: black;
+      padding: 10px;
+      width: 300px;
+      height: 200px;
+      overflow-y: auto;
+    }
+  </style>
 </head>
-
 <body>
-    <h1>Lista de Tarefas</h1>
 
-    <div class="alinhar">
-        <input type="text" placeholder="Digite a tarefa" id="tarefa">
-        <select id="categoria">
-            <option value="trabalho">Trabalho</option>
-            <option value="casa">Casa</option>
-        </select>
-        <button class="salvar" id="btnSalvar">Salvar</button>
-    </div>
+  <h1>Lista de Tarefas</h1>
 
-    <ol id="listaDeTarefas"></ol>
+  <div class="alinhar">
+    <input type="text" id="tarefa" placeholder="Digite a tarefa" />
+    <select id="categoria">
+      <option value="trabalho">Trabalho</option>
+      <option value="casa">Casa</option>
+    </select>
+    <button class="salvar" id="btnSalvar">Salvar</button>
+  </div>
 
-    <script>
-        const olHTML = document.getElementById("listaDeTarefas");
+  <ol id="listaDeTarefas"></ol>
 
-        async function baixarTarefas() {
-            try {
-                const tarefas = await fetch("https://tarefas-4hbd.onrender.com/");
-                const listaDeTarefas = await tarefas.json();
+  <script>
+    const btn = document.getElementById("btnSalvar");
+    const ol = document.getElementById("listaDeTarefas");
 
-                olHTML.innerHTML = "";
-                listaDeTarefas.forEach((tarefa) => {
-                    const li = document.createElement("li");
-                    if (tarefa.categoria === "casa") {
-                        li.innerHTML = `🏠<span>${tarefa.tarefa}</span> <button onclick="excluirTarefa(${tarefa.id})">Excluir</button>`;
-                    } else if (tarefa.categoria === "trabalho") {
-                        li.innerHTML = `💻<span>${tarefa.tarefa}</span> <button onclick="excluirTarefa(${tarefa.id})">Excluir</button>`;
-                    }
-                    olHTML.appendChild(li);
-                });
-            } catch (error) {
-                console.error("Erro ao baixar tarefas:", error);
-            }
-        }
+    btn.addEventListener("click", async () => {
+      console.log("Botão clicado");
 
-        async function salvarTarefa() {
-            console.log("CLICOU EM SALVAR"); // <- Teste no console
-            const tarefa = document.getElementById("tarefa").value.trim();
-            const categoria = document.getElementById("categoria").value;
+      const tarefa = document.getElementById("tarefa").value.trim();
+      const categoria = document.getElementById("categoria").value;
 
-            if (!tarefa) {
-                alert("Digite uma tarefa!");
-                return;
-            }
+      if (!tarefa) {
+        alert("Digite uma tarefa!");
+        return;
+      }
 
-            try {
-                await fetch("https://tarefas-4hbd.onrender.com/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ tarefa, categoria }),
-                });
-
-                document.getElementById("tarefa").value = "";
-                baixarTarefas();
-            } catch (error) {
-                console.error("Erro ao salvar tarefa:", error);
-            }
-        }
-
-        async function excluirTarefa(id) {
-            try {
-                await fetch(`https://tarefas-4hbd.onrender.com/${id}`, {
-                    method: "DELETE"
-                });
-                baixarTarefas();
-            } catch (error) {
-                console.error("Erro ao excluir tarefa:", error);
-            }
-        }
-
-        // Conecta o botão à função salvarTarefa
-        document.getElementById("btnSalvar").addEventListener("click", salvarTarefa);
-
-        // Carrega as tarefas ao abrir a página
+      try {
+        await fetch("https://tarefas-4hbd.onrender.com/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tarefa, categoria }),
+        });
+        document.getElementById("tarefa").value = "";
         baixarTarefas();
-    </script>
-</body>
+      } catch (err) {
+        console.error("Erro ao salvar:", err);
+      }
+    });
 
+    async function baixarTarefas() {
+      try {
+        const res = await fetch("https://tarefas-4hbd.onrender.com/");
+        const lista = await res.json();
+        ol.innerHTML = "";
+        lista.forEach(item => {
+          const li = document.createElement("li");
+          li.innerHTML = `${item.categoria === "casa" ? "🏠" : "💻"} ${item.tarefa} <button onclick="excluirTarefa(${item.id})">Excluir</button>`;
+          ol.appendChild(li);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar tarefas:", err);
+      }
+    }
+
+    async function excluirTarefa(id) {
+      try {
+        await fetch(`https://tarefas-4hbd.onrender.com/${id}`, { method: "DELETE" });
+        baixarTarefas();
+      } catch (err) {
+        console.error("Erro ao excluir:", err);
+      }
+    }
+
+    // Carregar tarefas ao iniciar
+    baixarTarefas();
+  </script>
+
+</body>
 </html>
