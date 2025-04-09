@@ -91,7 +91,7 @@
       }
 
       try {
-        const resposta = await fetch("https://tarefas-4hbd.onrender.com/", {
+        const resposta = await fetch("https://tarefas-4hbd.onrender.com/home", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tarefa, categoria }),
@@ -111,7 +111,7 @@
 
     async function baixarTarefas() {
       try {
-        const res = await fetch("https://tarefas-4hbd.onrender.com/");
+        const res = await fetch("https://tarefas-4hbd.onrender.com/home");
         const lista = await res.json();
         ol.innerHTML = "";
         lista.forEach(item => {
@@ -130,7 +130,7 @@
 
     async function excluirTarefa(id) {
       try {
-        await fetch(`https://tarefas-4hbd.onrender.com/${id}`, {
+        await fetch("https://tarefas-4hbd.onrender.com/home", {
           method: "DELETE"
         });
         baixarTarefas();
