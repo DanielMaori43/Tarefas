@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Teste Tarefas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Tarefas</title>
   <style>
     body {
       background-color: black;
@@ -12,6 +12,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 48px;
     }
     .alinhar {
       display: flex;
@@ -21,8 +25,15 @@
     input, select, button {
       height: 30px;
       font-size: 16px;
+      padding: 0 10px;
     }
-    button.salvar {
+    button {
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .salvar {
       background-color: antiquewhite;
       color: black;
     }
@@ -33,6 +44,19 @@
       width: 300px;
       height: 200px;
       overflow-y: auto;
+      box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
+      border: solid 3px rgb(74, 74, 74);
+      font-size: 20px;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    span {
+      flex-grow: 1;
+      margin-left: 8px;
     }
   </style>
 </head>
@@ -46,7 +70,7 @@
       <option value="trabalho">Trabalho</option>
       <option value="casa">Casa</option>
     </select>
-    <button class="salvar" id="btnSalvar">Salvar</button>
+    <button type="button" class="salvar" id="btnSalvar">Salvar</button>
   </div>
 
   <ol id="listaDeTarefas"></ol>
@@ -67,15 +91,21 @@
       }
 
       try {
-        await fetch("https://tarefas-4hbd.onrender.com/", {
+        const resposta = await fetch("https://tarefas-4hbd.onrender.com/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tarefa, categoria }),
         });
+
+        if (!resposta.ok) {
+          throw new Error("Erro ao salvar tarefa.");
+        }
+
         document.getElementById("tarefa").value = "";
         baixarTarefas();
       } catch (err) {
         console.error("Erro ao salvar:", err);
+        alert("Erro ao salvar a tarefa. Verifique o console.");
       }
     });
 
@@ -86,7 +116,11 @@
         ol.innerHTML = "";
         lista.forEach(item => {
           const li = document.createElement("li");
-          li.innerHTML = `${item.categoria === "casa" ? "🏠" : "💻"} ${item.tarefa} <button onclick="excluirTarefa(${item.id})">Excluir</button>`;
+          li.innerHTML = `
+            ${item.categoria === "casa" ? "🏠" : "💻"}
+            <span>${item.tarefa}</span>
+            <button onclick="excluirTarefa(${item.id})">Excluir</button>
+          `;
           ol.appendChild(li);
         });
       } catch (err) {
@@ -96,14 +130,16 @@
 
     async function excluirTarefa(id) {
       try {
-        await fetch(`https://tarefas-4hbd.onrender.com/${id}`, { method: "DELETE" });
+        await fetch(`https://tarefas-4hbd.onrender.com/${id}`, {
+          method: "DELETE"
+        });
         baixarTarefas();
       } catch (err) {
         console.error("Erro ao excluir:", err);
       }
     }
 
-    // Carregar tarefas ao iniciar
+    // Carrega as tarefas ao abrir a página
     baixarTarefas();
   </script>
 
