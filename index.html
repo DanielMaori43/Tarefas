@@ -14,7 +14,7 @@
 
     <div class="alinhar">
 
-        <!-- <form action="http://localhost:8080/tarefa" method="POST"> -->
+        <!-- <form action="https://tarefas-4hbd.onrender.com/" method="POST"> -->
         <input type="text" placeholder="Digite a tarefa" id="tarefa" required>
         <select name="" id="categoria">
             <option value="trabalho">Trabalho</option>
@@ -31,7 +31,7 @@
         const olHTML = document.getElementById("listaDeTarefas")
 
         async function baixarTarefas() {
-            var tarefas = await fetch("http://localhost:8080/tarefas") //faz a conexão
+            var tarefas = await fetch("https://tarefas-4hbd.onrender.com/") //faz a conexão
             var listaDeTarefas = await tarefas.json() //converte a resposta para JSON
 
             olHTML.innerHTML = ""
@@ -52,7 +52,7 @@
         async function salvarTarefa() {
             let tarefa = document.getElementById("tarefa").value
             let categoria = document.getElementById("categoria").value
-            let req = await fetch("http://localhost:8080/tarefa", {
+            let req = await fetch("https://tarefas-4hbd.onrender.com/", {
                 method: "POST", // metodo HTTP POST
                 headers: {
                     "Content-Type": "application/json",//Especifica que o conteudo é um OBJ JS
@@ -64,7 +64,7 @@
         }
 
         async function excluirTarefa(index) {
-            let req = await fetch("http://localhost:8080/tarefa/" + index,
+            let req = await fetch("https://tarefas-4hbd.onrender.com/" + index,
                 { method: "DELETE" })
             baixarTarefas()
         }
