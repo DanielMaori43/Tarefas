@@ -67,6 +67,26 @@
       flex-grow: 1;
       margin-left: 8px;
     }
+
+    #alerta {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+      font-weight: bold;
+      z-index: 999;
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; top: 10px; }
+      to { opacity: 1; top: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -82,10 +102,22 @@
     <button type="button" class="salvar" id="btnSalvar">Salvar</button>
   </div>
 
+  <div id="alerta"></div> <!-- Alerta visual -->
+
   <ol id="listaDeTarefas"></ol>
 
   <script>
     const API_URL = "https://tarefas-4hbd.onrender.com";
+
+    function mostrarAlerta(mensagem) {
+      const alerta = document.getElementById("alerta");
+      alerta.innerText = mensagem;
+      alerta.style.display = "block";
+
+      setTimeout(() => {
+        alerta.style.display = "none";
+      }, 3000); // 3 segundos
+    }
 
     document.getElementById("btnSalvar").addEventListener("click", async () => {
       const tarefa = document.getElementById("tarefa").value.trim();
@@ -109,8 +141,8 @@
           throw new Error("Erro ao salvar tarefa");
         }
 
-        console.log("Tarefa salva com sucesso!");
         document.getElementById("tarefa").value = "";
+        mostrarAlerta("✅ Tarefa salva com sucesso!");
         await baixarTarefas();
       } catch (err) {
         console.error("Erro:", err);
@@ -150,14 +182,12 @@
           throw new Error("Erro ao excluir tarefa");
         }
 
-        console.log("Tarefa excluída com sucesso");
         await baixarTarefas();
       } catch (err) {
         console.error("Erro ao excluir:", err);
       }
     }
 
-    // Carrega tarefas ao abrir
     baixarTarefas();
   </script>
 </body>
