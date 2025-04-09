@@ -85,14 +85,11 @@
   <ol id="listaDeTarefas"></ol>
 
   <script>
-    const btn = document.getElementById("btnSalvar");
-    const ol = document.getElementById("listaDeTarefas");
+    const API_URL = "https://tarefas-4hbd.onrender.com";
 
-    btn.addEventListener("click", async () => {
+    document.getElementById("btnSalvar").addEventListener("click", async () => {
       const tarefa = document.getElementById("tarefa").value.trim();
       const categoria = document.getElementById("categoria").value;
-
-      console.log("Clique no botão - tarefa:", tarefa, "| categoria:", categoria);
 
       if (!tarefa) {
         alert("Digite uma tarefa!");
@@ -100,7 +97,7 @@
       }
 
       try {
-        const resposta = await fetch("https://tarefas-4hbd.onrender.com/", {
+        const resposta = await fetch(`${API_URL}/tarefa`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -108,29 +105,28 @@
           body: JSON.stringify({ tarefa, categoria })
         });
 
-        const texto = await resposta.text();
-        console.log("Resposta do servidor:", texto);
-
         if (!resposta.ok) {
-          throw new Error("Erro ao salvar tarefa: " + resposta.status);
+          throw new Error("Erro ao salvar tarefa");
         }
 
+        console.log("Tarefa salva com sucesso!");
         document.getElementById("tarefa").value = "";
         await baixarTarefas();
       } catch (err) {
-        console.error("Erro no salvamento:", err);
-        alert("Erro ao salvar a tarefa. Veja o console.");
+        console.error("Erro:", err);
+        alert("Erro ao salvar tarefa. Veja o console.");
       }
     });
 
     async function baixarTarefas() {
       try {
-        const res = await fetch("https://tarefas-4hbd.onrender.com/");
-        const lista = await res.json();
+        const resposta = await fetch(`${API_URL}/tarefas`);
+        const tarefas = await resposta.json();
 
+        const ol = document.getElementById("listaDeTarefas");
         ol.innerHTML = "";
 
-        lista.forEach(item => {
+        tarefas.forEach((item) => {
           const li = document.createElement("li");
           li.innerHTML = `
             ${item.categoria === "casa" ? "🏠" : "💻"}
@@ -140,26 +136,28 @@
           ol.appendChild(li);
         });
       } catch (err) {
-        console.error("Erro ao carregar tarefas:", err);
+        console.error("Erro ao buscar tarefas:", err);
       }
     }
 
     async function excluirTarefa(id) {
       try {
-        const res = await fetch(`https://tarefas-4hbd.onrender.com/${id}`, {
+        const resposta = await fetch(`${API_URL}/tarefa/${id}`, {
           method: "DELETE"
         });
 
-        const texto = await res.text();
-        console.log("Tarefa excluída:", texto);
+        if (!resposta.ok) {
+          throw new Error("Erro ao excluir tarefa");
+        }
 
+        console.log("Tarefa excluída com sucesso");
         await baixarTarefas();
       } catch (err) {
         console.error("Erro ao excluir:", err);
       }
     }
 
-    // Carrega ao abrir
+    // Carrega tarefas ao abrir
     baixarTarefas();
   </script>
 </body>
