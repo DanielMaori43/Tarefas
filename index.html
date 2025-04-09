@@ -116,7 +116,7 @@
 
       setTimeout(() => {
         alerta.style.display = "none";
-      }, 3000); // 3 segundos
+      }, 3000);
     }
 
     document.getElementById("btnSalvar").addEventListener("click", async () => {
@@ -143,7 +143,9 @@
 
         document.getElementById("tarefa").value = "";
         mostrarAlerta("✅ Tarefa salva com sucesso!");
-        await baixarTarefas();
+
+        // Aguarda um tempo para garantir que o backend processe antes de atualizar
+        setTimeout(() => baixarTarefas(), 300);
       } catch (err) {
         console.error("Erro:", err);
         alert("Erro ao salvar tarefa. Veja o console.");
@@ -182,9 +184,12 @@
           throw new Error("Erro ao excluir tarefa");
         }
 
-        await baixarTarefas();
+        mostrarAlerta("🗑️ Tarefa excluída!");
+
+        setTimeout(() => baixarTarefas(), 300);
       } catch (err) {
         console.error("Erro ao excluir:", err);
+        alert("Erro ao excluir tarefa. Veja o console.");
       }
     }
 
