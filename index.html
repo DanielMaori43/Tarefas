@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lista de Tarefas</title>
   <style>
     body {
@@ -14,29 +14,36 @@
       align-items: center;
       padding: 20px;
     }
+
     h1 {
       font-size: 48px;
+      margin-bottom: 20px;
     }
+
     .alinhar {
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
     }
+
     input, select, button {
       height: 30px;
       font-size: 16px;
       padding: 0 10px;
     }
+
     button {
       background-color: red;
       color: white;
       border: none;
       cursor: pointer;
     }
+
     .salvar {
       background-color: antiquewhite;
       color: black;
     }
+
     ol {
       background-color: darkgray;
       color: black;
@@ -48,12 +55,14 @@
       border: solid 3px rgb(74, 74, 74);
       font-size: 20px;
     }
+
     li {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
     }
+
     span {
       flex-grow: 1;
       margin-left: 8px;
@@ -80,10 +89,10 @@
     const ol = document.getElementById("listaDeTarefas");
 
     btn.addEventListener("click", async () => {
-      console.log("Botão clicado");
-
       const tarefa = document.getElementById("tarefa").value.trim();
       const categoria = document.getElementById("categoria").value;
+
+      console.log("Clique no botão - tarefa:", tarefa, "| categoria:", categoria);
 
       if (!tarefa) {
         alert("Digite uma tarefa!");
@@ -91,29 +100,36 @@
       }
 
       try {
-        const resposta = await fetch("https://tarefas-4hbd.onrender.com/home", {
+        const resposta = await fetch("https://tarefas-4hbd.onrender.com/", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tarefa, categoria }),
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ tarefa, categoria })
         });
 
+        const texto = await resposta.text();
+        console.log("Resposta do servidor:", texto);
+
         if (!resposta.ok) {
-          throw new Error("Erro ao salvar tarefa.");
+          throw new Error("Erro ao salvar tarefa: " + resposta.status);
         }
 
         document.getElementById("tarefa").value = "";
-        baixarTarefas();
+        await baixarTarefas();
       } catch (err) {
-        console.error("Erro ao salvar:", err);
-        alert("Erro ao salvar a tarefa. Verifique o console.");
+        console.error("Erro no salvamento:", err);
+        alert("Erro ao salvar a tarefa. Veja o console.");
       }
     });
 
     async function baixarTarefas() {
       try {
-        const res = await fetch("https://tarefas-4hbd.onrender.com/home");
+        const res = await fetch("https://tarefas-4hbd.onrender.com/");
         const lista = await res.json();
+
         ol.innerHTML = "";
+
         lista.forEach(item => {
           const li = document.createElement("li");
           li.innerHTML = `
@@ -130,18 +146,21 @@
 
     async function excluirTarefa(id) {
       try {
-        await fetch("https://tarefas-4hbd.onrender.com/home", {
+        const res = await fetch(`https://tarefas-4hbd.onrender.com/${id}`, {
           method: "DELETE"
         });
-        baixarTarefas();
+
+        const texto = await res.text();
+        console.log("Tarefa excluída:", texto);
+
+        await baixarTarefas();
       } catch (err) {
         console.error("Erro ao excluir:", err);
       }
     }
 
-    // Carrega as tarefas ao abrir a página
+    // Carrega ao abrir
     baixarTarefas();
   </script>
-
 </body>
 </html>
