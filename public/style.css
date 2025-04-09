@@ -1,0 +1,52 @@
+body{
+    background-color: black;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+button{
+    width: 75px;
+    height: 20px;
+    
+    
+}
+.alinhar{
+    display: flex;
+    gap: 5px;
+}
+
+input{
+    width: 100px;
+    height: 15px;
+}
+ol{
+    background-color: darkgray;
+    width: 300px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2); /* Sombra preta com 20% de opacidade */
+    border: solid 3px rgb(74, 74, 74);
+    font-size: 25px;
+    text-align: left;
+    gap: 8px;
+    
+    
+
+}
+span{
+  max-width: max-content;
+    
+}
+button{
+    
+    background-color: red;
+}
+.salvar{
+    background-color: antiquewhite;
+}
+h1{
+    font-size: 50px;
+}
