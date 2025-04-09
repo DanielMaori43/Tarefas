@@ -7,125 +7,122 @@
     <link rel="stylesheet" href="style.css">
     <title>Document</title>
 </head>
+
 <style>
-    body{
-    background-color: black;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-button{
-    width: 75px;
-    height: 20px;
-    
-    
-}
-.alinhar{
-    display: flex;
-    gap: 5px;
-}
+    body {
+        background-color: black;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
 
-input{
-    width: 100px;
-    height: 15px;
-}
-ol{
-    background-color: darkgray;
-    width: 300px;
-    height: 200px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2); /* Sombra preta com 20% de opacidade */
-    border: solid 3px rgb(74, 74, 74);
-    font-size: 25px;
-    text-align: left;
-    gap: 8px;
-    
-    
+    button {
+        width: 75px;
+        height: 20px;
+        background-color: red;
+    }
 
-}
-span{
-  max-width: max-content;
-    
-}
-button{
-    
-    background-color: red;
-}
-.salvar{
-    background-color: antiquewhite;
-}
-h1{
-    font-size: 50px;
-}
+    .alinhar {
+        display: flex;
+        gap: 5px;
+    }
 
+    input {
+        width: 100px;
+        height: 15px;
+    }
+
+    ol {
+        background-color: darkgray;
+        width: 300px;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
+        border: solid 3px rgb(74, 74, 74);
+        font-size: 25px;
+        text-align: left;
+        gap: 8px;
+    }
+
+    span {
+        max-width: max-content;
+    }
+
+    .salvar {
+        background-color: antiquewhite;
+    }
+
+    h1 {
+        font-size: 50px;
+    }
 </style>
+
 <body>
 
     <h1>Lista de Tarefas</h1>
 
     <div class="alinhar">
-
-        <!-- <form action="https://tarefas-4hbd.onrender.com/" method="POST"> -->
         <input type="text" placeholder="Digite a tarefa" id="tarefa" required>
-        <select name="" id="categoria">
+        <select id="categoria">
             <option value="trabalho">Trabalho</option>
             <option value="casa">Casa</option>
         </select>
         <button class="salvar" onclick="salvarTarefa()">Salvar</button>
-        <!-- </form> -->
     </div>
-    <ol id="listaDeTarefas">
 
-    </ol>
+    <ol id="listaDeTarefas"></ol>
 
     <script>
-        const olHTML = document.getElementById("listaDeTarefas")
+        const olHTML = document.getElementById("listaDeTarefas");
 
         async function baixarTarefas() {
-            var tarefas = await fetch("https://tarefas-4hbd.onrender.com/") //faz a conexão
-            var listaDeTarefas = await tarefas.json() //converte a resposta para JSON
+            const tarefas = await fetch("https://tarefas-4hbd.onrender.com/");
+            const listaDeTarefas = await tarefas.json();
 
-            olHTML.innerHTML = ""
-            listaDeTarefas.forEach((tarefa, index) => {
-                console.log(tarefa)
-                const li = document.createElement("li")
+            olHTML.innerHTML = "";
+            listaDeTarefas.forEach((tarefa) => {
+                const li = document.createElement("li");
                 if (tarefa.categoria == "casa") {
-                    li.innerHTML = `🏠<span>${tarefa.tarefa}</span> <button onclick= excluirTarefa(${tarefa.id})>Excluir</button>`
+                    li.innerHTML = `🏠<span>${tarefa.tarefa}</span> <button onclick="excluirTarefa(${tarefa.id})">Excluir</button>`;
+                } else if (tarefa.categoria == "trabalho") {
+                    li.innerHTML = `💻<span>${tarefa.tarefa}</span> <button onclick="excluirTarefa(${tarefa.id})">Excluir</button>`;
                 }
-                else if (tarefa.categoria == "trabalho") {
-                    li.innerHTML = `💻<span>${tarefa.tarefa}</span> <button onclick= excluirTarefa(${tarefa.id})>Excluir</button>`
-                }
-
-                olHTML.appendChild(li)
-            })
+                olHTML.appendChild(li);
+            });
         }
 
         async function salvarTarefa() {
-            let tarefa = document.getElementById("tarefa").value
-            let categoria = document.getElementById("categoria").value
-            let req = await fetch("https://tarefas-4hbd.onrender.com/", {
-                method: "POST", // metodo HTTP POST
+            const tarefa = document.getElementById("tarefa").value.trim();
+            const categoria = document.getElementById("categoria").value;
+
+            if (!tarefa) {
+                alert("Digite uma tarefa!");
+                return;
+            }
+
+            await fetch("https://tarefas-4hbd.onrender.com/", {
+                method: "POST",
                 headers: {
-                    "Content-Type": "application/json",//Especifica que o conteudo é um OBJ JS
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ tarefa, categoria })
-                //converte o VALUE recebido do INPUT para o CORPO DA REQUISICAO
-            })
-            baixarTarefas()
+                body: JSON.stringify({ tarefa, categoria }),
+            });
+
+            document.getElementById("tarefa").value = ""; // Limpa o campo
+            baixarTarefas();
         }
 
-        async function excluirTarefa(index) {
-            let req = await fetch("https://tarefas-4hbd.onrender.com/" + index,
-                { method: "DELETE" })
-            baixarTarefas()
+        async function excluirTarefa(id) {
+            await fetch(`https://tarefas-4hbd.onrender.com/${id}`, {
+                method: "DELETE"
+            });
+            baixarTarefas();
         }
 
-        baixarTarefas()
-
-
+        baixarTarefas();
     </script>
 </body>
 
