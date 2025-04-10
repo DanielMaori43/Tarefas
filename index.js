@@ -8,7 +8,7 @@ const path = require("path");
 
 app.use(cors());
 app.use(bp.json());
-app.use(bp.urlencoded({ extended: true })); // ✅ Corrigido
+app.use(bp.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const db = new sqlite3.Database("./db.sqlite");
@@ -50,7 +50,7 @@ app.post("/tarefa", (req, res) => {
         console.error(err);
         return res.status(500).json({ erro: "Erro ao salvar tarefa" });
       }
-      res.status(201).json({ id: this.lastID }); // ✅ Retorna ID da tarefa criada
+      res.status(201).json({ id: this.lastID });
     }
   );
 });
@@ -76,9 +76,14 @@ app.get("/home", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// Endpoint para manter o serviço ativo
+app.get('/ping', (req, res) => {
+  res.status(200).json({ message: "Pong" });
+});
+
 // Ping para manter o servidor ativo
 setInterval(() => {
-  axios.get('https://tarefas-4hbd.onrender.com') // Endereço da sua API
+  axios.get('https://tarefas-4hbd.onrender.com/ping') // Usando o endpoint correto para o ping
     .then(response => {
       console.log('Ping enviado com sucesso!');
     })
