@@ -93,7 +93,7 @@ app.post("/tarefa", (req, res) => {
   }
 
   db.run(
-    `INSERT INTO Tarefas (tarefa, categoria) VALUES (?, ?)`,
+    `INSERT INTO Tarefas (tarefa, categoria, criado_em) VALUES (?, ?, datetime('now', 'localtime'))`,
     [tarefa, categoria],
     function (err) {
       if (err) {
