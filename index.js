@@ -78,7 +78,7 @@ app.get("/home", (req, res) => {
 
 // Ping para manter o servidor ativo
 setInterval(() => {
-  axios.get('https://seu-endereco-de-api') // Endereço da sua API
+  axios.get('https://tarefas-4hbd.onrender.com') // Endereço da sua API
     .then(response => {
       console.log('Ping enviado com sucesso!');
     })
