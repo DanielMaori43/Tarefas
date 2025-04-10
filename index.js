@@ -1,6 +1,7 @@
 const express = require("express");
 const bp = require("body-parser");
 const cors = require("cors");
+const axios = require("axios"); // Importando o axios
 const app = express();
 const sqlite3 = require("sqlite3");
 const path = require("path");
@@ -74,10 +75,14 @@ app.delete("/tarefa/:id", (req, res) => {
 app.get("/home", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
-//ping para atualizar o render e não perder as informações do banco de dados//
+
+// Ping para manter o servidor ativo
 setInterval(() => {
-    fetch('https://seu-endereco-de-api/ping')
-        .then(response => response.json())
-        .then(data => console.log('Ping enviado com sucesso!'))
-        .catch(error => console.log('Erro ao enviar o ping:', error));
+  axios.get('https://seu-endereco-de-api') // Endereço da sua API
+    .then(response => {
+      console.log('Ping enviado com sucesso!');
+    })
+    .catch(error => {
+      console.log('Erro ao enviar o ping:', error);
+    });
 }, 30 * 60 * 1000); // A cada 30 minutos (em milissegundos)
