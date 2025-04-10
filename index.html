@@ -2,217 +2,126 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lista de Tarefas</title>
   <style>
     body {
-      background-color: black;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
       padding: 20px;
     }
-
     h1 {
-      font-size: 48px;
-      margin-bottom: 20px;
+      text-align: center;
     }
-
-    .alinhar {
-      display: flex;
-      gap: 10px;
+    form {
       margin-bottom: 20px;
+      text-align: center;
     }
-
     input, select, button {
-      width: 108px;
-      height: 30px;
-      font-size: 16px;
-      padding: 0 10px;
+      padding: 10px;
+      margin: 5px;
     }
-
-    button {
-      background-color: red;
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #fff;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .data {
+      font-size: 0.8em;
+      color: gray;
+      margin-top: 5px;
+    }
+    .categoria {
+      font-style: italic;
+      color: #007bff;
+    }
+    button.delete {
+      background: #ff4d4d;
       color: white;
       border: none;
+      padding: 6px 10px;
       cursor: pointer;
-    }
-
-    .salvar {
-      background-color: antiquewhite;
-      color: black;
-    }
-
-    ol {
-      background-color: darkgray;
-      color: black;
-      padding: 10px;
-      width: 300px;
-      height: 200px;
-      overflow-y: auto;
-      box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
-      border: solid 3px rgb(74, 74, 74);
-      font-size: 20px;
-    }
-
-    li {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-
-    .linha {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      align-items: center;
-    }
-
-    .data {
-      font-size: 12px;
-      color: #333;
-      margin-top: 4px;
-      align-self: flex-end;
-    }
-
-    #alerta {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-      font-weight: bold;
-      z-index: 999;
-      display: none;
-      animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; top: 10px; }
-      to { opacity: 1; top: 20px; }
+      float: right;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
+  <h1>📋 Lista de Tarefas</h1>
 
-  <h1>Lista de Tarefas</h1>
-
-  <div class="alinhar">
-    <input type="text" id="tarefa" placeholder="Digite a tarefa" />
+  <form id="formTarefa">
+    <input type="text" id="tarefa" placeholder="Digite a tarefa" required />
     <select id="categoria">
-      <option value="trabalho">Trabalho</option>
-      <option value="casa">Casa</option>
+      <option value="Pessoal">Pessoal</option>
+      <option value="Trabalho">Trabalho</option>
+      <option value="Estudo">Estudo</option>
     </select>
-    <button type="button" class="salvar" id="btnSalvar">Salvar</button>
-  </div>
+    <button type="submit">Adicionar</button>
+  </form>
 
-  <div id="alerta"></div> <!-- Alerta visual -->
-
-  <ol id="listaDeTarefas"></ol>
+  <ul id="listaTarefas"></ul>
 
   <script>
-    const API_URL = "https://tarefas-4hbd.onrender.com/home";
+    async function carregarTarefas() {
+      const res = await fetch('/tarefas');
+      const tarefas = await res.json();
 
-    function mostrarAlerta(mensagem) {
-      const alerta = document.getElementById("alerta");
-      alerta.innerText = mensagem;
-      alerta.style.display = "block";
+      const lista = document.getElementById('listaTarefas');
+      lista.innerHTML = '';
 
-      setTimeout(() => {
-        alerta.style.display = "none";
-      }, 3000);
+      tarefas.forEach(({ id, tarefa, categoria, criado_em }) => {
+        const li = document.createElement('li');
+
+        li.innerHTML = `
+          <strong>${tarefa}</strong> <span class="categoria">(${categoria})</span>
+          <button class="delete" onclick="excluirTarefa(${id})">Excluir</button>
+          <div class="data">Criado em: ${formatarDataHora(criado_em)}</div>
+        `;
+
+        lista.appendChild(li);
+      });
     }
 
-    document.getElementById("btnSalvar").addEventListener("click", async () => {
-      const tarefa = document.getElementById("tarefa").value.trim();
-      const categoria = document.getElementById("categoria").value;
-
-      if (!tarefa) {
-        alert("Digite uma tarefa!");
-        return;
-      }
-
-      try {
-        const resposta = await fetch(`${API_URL}/tarefa`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ tarefa, categoria })
-        });
-
-        if (!resposta.ok) {
-          throw new Error("Erro ao salvar tarefa");
-        }
-
-        document.getElementById("tarefa").value = "";
-        mostrarAlerta("✅ Tarefa salva com sucesso!");
-        setTimeout(() => baixarTarefas(), 300);
-      } catch (err) {
-        console.error("Erro:", err);
-        alert("Erro ao salvar tarefa. Veja o console.");
-      }
-    });
-
-    async function baixarTarefas() {
-      try {
-        const resposta = await fetch(`${API_URL}/tarefas`);
-        const tarefas = await resposta.json();
-
-        const ol = document.getElementById("listaDeTarefas");
-        ol.innerHTML = "";
-
-        tarefas.forEach((item) => {
-          const li = document.createElement("li");
-
-          // Formata data e hora
-          const dataFormatada = item.criado_em
-            ? new Date(item.criado_em).toLocaleString("pt-BR", {
-                dateStyle: "short",
-                timeStyle: "short"
-              })
-            : "";
-
-          li.innerHTML = `
-            <div class="linha">
-              ${item.categoria === "casa" ? "🏠" : "💻"}
-              <span>${item.tarefa}</span>
-              <button onclick="excluirTarefa(${item.id})">Excluir</button>
-            </div>
-            <div class="data">🕒 ${dataFormatada}</div>
-          `;
-          ol.appendChild(li);
-        });
-      } catch (err) {
-        console.error("Erro ao buscar tarefas:", err);
-      }
+    function formatarDataHora(dataHora) {
+      if (!dataHora) return '';
+      const data = new Date(dataHora);
+      const opcoes = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return data.toLocaleString('pt-BR', opcoes);
     }
 
     async function excluirTarefa(id) {
-      try {
-        const resposta = await fetch(`${API_URL}/tarefa/${id}`, {
-          method: "DELETE"
-        });
-
-        if (!resposta.ok) {
-          throw new Error("Erro ao excluir tarefa");
-        }
-
-        mostrarAlerta("🗑️ Tarefa excluída!");
-        setTimeout(() => baixarTarefas(), 300);
-      } catch (err) {
-        console.error("Erro ao excluir:", err);
-        alert("Erro ao excluir tarefa. Veja o console.");
-      }
+      await fetch(`/tarefa/${id}`, { method: 'DELETE' });
+      carregarTarefas();
     }
 
-    baixarTarefas();
+    document.getElementById('formTarefa').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const tarefa = document.getElementById('tarefa').value;
+      const categoria = document.getElementById('categoria').value;
+
+      await fetch('/tarefa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tarefa, categoria })
+      });
+
+      document.getElementById('tarefa').value = '';
+      carregarTarefas();
+    });
+
+    carregarTarefas();
   </script>
 </body>
 </html>
