@@ -2,47 +2,39 @@ const express = require("express");
 const bp = require("body-parser");
 const cors = require("cors");
 const axios = require("axios");
+const app = express();
 const sqlite3 = require("sqlite3");
 const path = require("path");
-
-const app = express();
-const db = new sqlite3.Database("./db.sqlite");
 
 app.use(cors());
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
+const db = new sqlite3.Database("./db.sqlite");
+
 app.listen(8080, () => {
   console.log("🚀 Servidor rodando na porta 8080");
 });
 
-// Verifica se a coluna criado_em existe e adiciona, se necessário
-db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
-  if (err) return console.error("Erro ao verificar colunas:", err.message);
+// Garante que a coluna criado_em exista
+db.serialize(() => {
+  db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
+    if (err) return console.error("Erro ao verificar colunas:", err);
 
-  const existeCriadoEm = columns.some(col => col.name === "criado_em");
+    const existeCriadoEm = columns.some(col => col.name === "criado_em");
 
-  if (!existeCriadoEm) {
-    db.run(`ALTER TABLE Tarefas ADD COLUMN criado_em TEXT DEFAULT (datetime('now', 'localtime'))`, (err) => {
-      if (err) {
-        console.error("Erro ao adicionar coluna criado_em:", err.message);
-      } else {
-        console.log("✅ Coluna criado_em adicionada com sucesso.");
-      }
-    });
-  }
+    if (!existeCriadoEm) {
+      db.run(`ALTER TABLE Tarefas ADD COLUMN criado_em TEXT`, (err) => {
+        if (err) {
+          console.error("Erro ao adicionar coluna 'criado_em':", err.message);
+        } else {
+          console.log("✅ Coluna 'criado_em' adicionada com sucesso.");
+        }
+      });
+    }
+  });
 });
-
-// Cria tabela se não existir
-db.run(`
-  CREATE TABLE IF NOT EXISTS Tarefas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tarefa TEXT NOT NULL,
-    categoria TEXT,
-    criado_em TEXT DEFAULT (datetime('now', 'localtime'))
-  )
-`);
 
 app.get("/tarefas", (req, res) => {
   db.all(`SELECT * FROM Tarefas ORDER BY id DESC`, [], (err, rows) => {
@@ -61,12 +53,14 @@ app.post("/tarefa", (req, res) => {
     return res.status(400).json({ erro: "Dados inválidos" });
   }
 
+  const criado_em = new Date().toLocaleString("pt-BR"); // formato local brasileiro
+
   db.run(
-    `INSERT INTO Tarefas (tarefa, categoria) VALUES (?, ?)`,
-    [tarefa, categoria],
+    `INSERT INTO Tarefas (tarefa, categoria, criado_em) VALUES (?, ?, ?)`,
+    [tarefa, categoria, criado_em],
     function (err) {
       if (err) {
-        console.error("Erro ao salvar tarefa:", err.message);
+        console.error(err);
         return res.status(500).json({ erro: "Erro ao salvar tarefa" });
       }
       res.status(201).json({ id: this.lastID });
