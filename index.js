@@ -19,14 +19,37 @@ app.listen(8080, () => {
 
 // Criação da tabela e adição de coluna criado_em se necessário
 db.serialize(() => {
+  // Cria tabela nova com criado_em automático
   db.run(`
-    CREATE TABLE IF NOT EXISTS Tarefas(
+    CREATE TABLE IF NOT EXISTS Tarefas_temp (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       tarefa VARCHAR(50) NOT NULL,
-      categoria VARCHAR(50)
+      categoria VARCHAR(50),
+      criado_em TEXT DEFAULT (datetime('now', 'localtime'))
     )
-  `);
+  `, (err) => {
+    if (err) return console.error("Erro ao criar tabela temporária:", err.message);
 
+    // Copia os dados da tabela antiga (sem criado_em)
+    db.run(`
+      INSERT INTO Tarefas_temp (id, tarefa, categoria)
+      SELECT id, tarefa, categoria FROM Tarefas
+    `, (err) => {
+      if (err) return console.error("Erro ao copiar dados:", err.message);
+
+      // Remove a antiga
+      db.run(`DROP TABLE Tarefas`, (err) => {
+        if (err) return console.error("Erro ao remover tabela antiga:", err.message);
+
+        // Renomeia a nova para Tarefas
+        db.run(`ALTER TABLE Tarefas_temp RENAME TO Tarefas`, (err) => {
+          if (err) return console.error("Erro ao renomear tabela:", err.message);
+          console.log("✅ Tabela atualizada com coluna 'criado_em' automática.");
+        });
+      });
+    });
+  });
+});
   db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
     if (err) return console.error("Erro ao verificar colunas:", err);
 
