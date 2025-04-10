@@ -74,3 +74,10 @@ app.delete("/tarefa/:id", (req, res) => {
 app.get("/home", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
+//ping para atualizar o render e não perder as informações do banco de dados//
+setInterval(() => {
+    fetch('https://seu-endereco-de-api/ping')
+        .then(response => response.json())
+        .then(data => console.log('Ping enviado com sucesso!'))
+        .catch(error => console.log('Erro ao enviar o ping:', error));
+}, 30 * 60 * 1000); // A cada 30 minutos (em milissegundos)
