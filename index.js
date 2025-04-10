@@ -17,55 +17,64 @@ app.listen(8080, () => {
   console.log("🚀 Servidor rodando na porta 8080");
 });
 
-// Criação da tabela e adição de coluna criado_em se necessário
+// Verifica e ajusta a tabela Tarefas para incluir criado_em
 db.serialize(() => {
-  // Cria tabela nova com criado_em automático
-  db.run(`
-    CREATE TABLE IF NOT EXISTS Tarefas_temp (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      tarefa VARCHAR(50) NOT NULL,
-      categoria VARCHAR(50),
-      criado_em TEXT DEFAULT (datetime('now', 'localtime'))
-    )
-  `, (err) => {
-    if (err) return console.error("Erro ao criar tabela temporária:", err.message);
+  db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
+    if (err) return console.error("Erro ao verificar colunas:", err.message);
 
-    // Copia os dados da tabela antiga (sem criado_em)
-    db.run(`
-      INSERT INTO Tarefas_temp (id, tarefa, categoria)
-      SELECT id, tarefa, categoria FROM Tarefas
-    `, (err) => {
-      if (err) return console.error("Erro ao copiar dados:", err.message);
+    const tabelaExiste = columns.length > 0;
+    const temColunaCriadoEm = columns.some(col => col.name === "criado_em");
 
-      // Remove a antiga
-      db.run(`DROP TABLE Tarefas`, (err) => {
-        if (err) return console.error("Erro ao remover tabela antiga:", err.message);
+    if (!tabelaExiste) {
+      db.run(`
+        CREATE TABLE Tarefas (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          tarefa VARCHAR(50) NOT NULL,
+          categoria VARCHAR(50),
+          criado_em TEXT DEFAULT (datetime('now', 'localtime'))
+        )
+      `, (err) => {
+        if (err) return console.error("Erro ao criar tabela:", err.message);
+        console.log("✅ Tabela criada com 'criado_em'");
+      });
+    } else if (!temColunaCriadoEm) {
+      console.log("ℹ️ Coluna 'criado_em' não encontrada. Atualizando tabela...");
 
-        // Renomeia a nova para Tarefas
-        db.run(`ALTER TABLE Tarefas_temp RENAME TO Tarefas`, (err) => {
-          if (err) return console.error("Erro ao renomear tabela:", err.message);
-          console.log("✅ Tabela atualizada com coluna 'criado_em' automática.");
+      db.serialize(() => {
+        db.run(`
+          CREATE TABLE IF NOT EXISTS Tarefas_temp (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tarefa VARCHAR(50) NOT NULL,
+            categoria VARCHAR(50),
+            criado_em TEXT DEFAULT (datetime('now', 'localtime'))
+          )
+        `, (err) => {
+          if (err) return console.error("Erro ao criar tabela temporária:", err.message);
+
+          db.run(`
+            INSERT INTO Tarefas_temp (id, tarefa, categoria)
+            SELECT id, tarefa, categoria FROM Tarefas
+          `, (err) => {
+            if (err) return console.error("Erro ao copiar dados:", err.message);
+
+            db.run(`DROP TABLE Tarefas`, (err) => {
+              if (err) return console.error("Erro ao remover tabela antiga:", err.message);
+
+              db.run(`ALTER TABLE Tarefas_temp RENAME TO Tarefas`, (err) => {
+                if (err) return console.error("Erro ao renomear tabela:", err.message);
+                console.log("✅ Coluna 'criado_em' adicionada com sucesso!");
+              });
+            });
+          });
         });
       });
-    });
-  });
-});
-  db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
-    if (err) return console.error("Erro ao verificar colunas:", err);
-
-    const existeCriadoEm = columns.some(col => col.name === "criado_em");
-    if (!existeCriadoEm) {
-      db.run(`ALTER TABLE Tarefas ADD COLUMN criado_em TEXT DEFAULT (datetime('now', 'localtime'))`, (err) => {
-        if (err) {
-          console.error("Erro ao adicionar coluna 'criado_em':", err.message);
-        } else {
-          console.log("✅ Coluna 'criado_em' adicionada com sucesso.");
-        }
-      });
+    } else {
+      console.log("✅ Tabela já contém a coluna 'criado_em'");
     }
   });
 });
 
+// Rotas
 app.get("/tarefas", (req, res) => {
   db.all(`SELECT * FROM Tarefas ORDER BY id DESC`, [], (err, rows) => {
     if (err) {
