@@ -121,13 +121,12 @@
   <ol id="listaDeTarefas"></ol>
 
   <script>
-    const API_URL = "https://tarefas-4hbd.onrender.com"; // sem /home
+    const API_URL = "https://tarefas-4hbd.onrender.com/home";
 
     function mostrarAlerta(mensagem) {
       const alerta = document.getElementById("alerta");
       alerta.innerText = mensagem;
       alerta.style.display = "block";
-
       setTimeout(() => {
         alerta.style.display = "none";
       }, 3000);
@@ -151,11 +150,12 @@
           body: JSON.stringify({ tarefa, categoria })
         });
 
-        if (!resposta.ok) throw new Error("Erro ao salvar tarefa");
+        if (!resposta.ok) {
+          throw new Error("Erro ao salvar tarefa");
+        }
 
         document.getElementById("tarefa").value = "";
         mostrarAlerta("✅ Tarefa salva com sucesso!");
-
         setTimeout(() => baixarTarefas(), 300);
       } catch (err) {
         console.error("Erro:", err);
@@ -174,10 +174,8 @@
         tarefas.forEach((item) => {
           const li = document.createElement("li");
 
-          // Corrigindo para o horário de Brasília (UTC-3)
-          const dataUTC = new Date(item.criado_em + "Z");
-          const dataBrasilia = new Date(dataUTC.getTime() - 3 * 60 * 60 * 1000);
-          const dataFormatada = dataBrasilia.toLocaleString("pt-BR");
+          // Exibe a data/hora no formato brasileiro
+          const dataFormatada = new Date(item.criado_em).toLocaleString("pt-BR");
 
           li.innerHTML = `
             <div class="tarefa-topo">
@@ -201,10 +199,11 @@
           method: "DELETE"
         });
 
-        if (!resposta.ok) throw new Error("Erro ao excluir tarefa");
+        if (!resposta.ok) {
+          throw new Error("Erro ao excluir tarefa");
+        }
 
         mostrarAlerta("🗑️ Tarefa excluída!");
-
         setTimeout(() => baixarTarefas(), 300);
       } catch (err) {
         console.error("Erro ao excluir:", err);
@@ -212,6 +211,7 @@
       }
     }
 
+    // Ping automático para manter o Render ativo
     setInterval(() => {
       fetch("https://tarefas-4hbd.onrender.com/ping")
         .then(() => console.log("🔁 Ping enviado com sucesso"))
