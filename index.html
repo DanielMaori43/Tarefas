@@ -1,224 +1,101 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lista de Tarefas</title>
-  <style>
-    body {
-      background-color: black;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+<script>
+  const API_URL = "https://tarefas-4hbd.onrender.com"; // sem /home
+
+  function mostrarAlerta(mensagem) {
+    const alerta = document.getElementById("alerta");
+    alerta.innerText = mensagem;
+    alerta.style.display = "block";
+
+    setTimeout(() => {
+      alerta.style.display = "none";
+    }, 3000);
+  }
+
+  document.getElementById("btnSalvar").addEventListener("click", async () => {
+    const tarefa = document.getElementById("tarefa").value.trim();
+    const categoria = document.getElementById("categoria").value;
+
+    if (!tarefa) {
+      alert("Digite uma tarefa!");
+      return;
     }
 
-    h1 {
-      font-size: 48px;
-      margin-bottom: 20px;
+    try {
+      const resposta = await fetch(`${API_URL}/tarefa`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ tarefa, categoria })
+      });
+
+      if (!resposta.ok) throw new Error("Erro ao salvar tarefa");
+
+      document.getElementById("tarefa").value = "";
+      mostrarAlerta("✅ Tarefa salva com sucesso!");
+
+      setTimeout(() => baixarTarefas(), 300);
+    } catch (err) {
+      console.error("Erro:", err);
+      alert("Erro ao salvar tarefa. Veja o console.");
     }
+  });
 
-    .alinhar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+  async function baixarTarefas() {
+    try {
+      const resposta = await fetch(`${API_URL}/tarefas`);
+      const tarefas = await resposta.json();
 
-    input, select, button {
-      width: 108px;
-      height: 30px;
-      font-size: 16px;
-      padding: 0 10px;
-    }
+      const ol = document.getElementById("listaDeTarefas");
+      ol.innerHTML = "";
 
-    button {
-      background-color: red;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+      tarefas.forEach((item) => {
+        const li = document.createElement("li");
 
-    .salvar {
-      background-color: antiquewhite;
-      color: black;
-    }
-
-    ol {
-      background-color: darkgray;
-      color: black;
-      padding: 10px;
-      width: 300px;
-      height: 200px;
-      overflow-y: auto;
-      box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
-      border: solid 3px rgb(74, 74, 74);
-      font-size: 20px;
-    }
-
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    span {
-      flex-grow: 1;
-      margin-left: 8px;
-    }
-
-    .tarefa-topo {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-    }
-
-    small {
-      font-size: 12px;
-      color: #444;
-    }
-
-    #alerta {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-      font-weight: bold;
-      z-index: 999;
-      display: none;
-      animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; top: 10px; }
-      to { opacity: 1; top: 20px; }
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Lista de Tarefas</h1>
-
-  <div class="alinhar">
-    <input type="text" id="tarefa" placeholder="Digite a tarefa" />
-    <select id="categoria">
-      <option value="trabalho">Trabalho</option>
-      <option value="casa">Casa</option>
-    </select>
-    <button type="button" class="salvar" id="btnSalvar">Salvar</button>
-  </div>
-
-  <div id="alerta"></div>
-
-  <ol id="listaDeTarefas"></ol>
-
-  <script>
-    const API_URL = "https://tarefas-4hbd.onrender.com/home";
-
-    function mostrarAlerta(mensagem) {
-      const alerta = document.getElementById("alerta");
-      alerta.innerText = mensagem;
-      alerta.style.display = "block";
-      setTimeout(() => {
-        alerta.style.display = "none";
-      }, 3000);
-    }
-
-    document.getElementById("btnSalvar").addEventListener("click", async () => {
-      const tarefa = document.getElementById("tarefa").value.trim();
-      const categoria = document.getElementById("categoria").value;
-
-      if (!tarefa) {
-        alert("Digite uma tarefa!");
-        return;
-      }
-
-      try {
-        const resposta = await fetch(`${API_URL}/tarefa`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ tarefa, categoria })
+        // Usa fuso horário de Brasília corretamente
+        const data = new Date(item.criado_em + "Z");
+        const dataFormatada = data.toLocaleString("pt-BR", {
+          timeZone: "America/Sao_Paulo"
         });
 
-        if (!resposta.ok) {
-          throw new Error("Erro ao salvar tarefa");
-        }
+        li.innerHTML = `
+          <div class="tarefa-topo">
+            ${item.categoria === "casa" ? "🏠" : "💻"}
+            <button onclick="excluirTarefa(${item.id})">Excluir</button>
+          </div>
+          <span>${item.tarefa}</span>
+          <small>🕒 ${dataFormatada}</small>
+        `;
 
-        document.getElementById("tarefa").value = "";
-        mostrarAlerta("✅ Tarefa salva com sucesso!");
-        setTimeout(() => baixarTarefas(), 300);
-      } catch (err) {
-        console.error("Erro:", err);
-        alert("Erro ao salvar tarefa. Veja o console.");
-      }
-    });
-
-    async function baixarTarefas() {
-      try {
-        const resposta = await fetch(`${API_URL}/tarefas`);
-        const tarefas = await resposta.json();
-
-        const ol = document.getElementById("listaDeTarefas");
-        ol.innerHTML = "";
-
-        tarefas.forEach((item) => {
-          const li = document.createElement("li");
-
-          // Exibe a data/hora no formato brasileiro
-          const dataFormatada = new Date(item.criado_em).toLocaleString("pt-BR");
-
-          li.innerHTML = `
-            <div class="tarefa-topo">
-              ${item.categoria === "casa" ? "🏠" : "💻"}
-              <button onclick="excluirTarefa(${item.id})">Excluir</button>
-            </div>
-            <span>${item.tarefa}</span>
-            <small>🕒 ${dataFormatada}</small>
-          `;
-
-          ol.appendChild(li);
-        });
-      } catch (err) {
-        console.error("Erro ao buscar tarefas:", err);
-      }
+        ol.appendChild(li);
+      });
+    } catch (err) {
+      console.error("Erro ao buscar tarefas:", err);
     }
+  }
 
-    async function excluirTarefa(id) {
-      try {
-        const resposta = await fetch(`${API_URL}/tarefa/${id}`, {
-          method: "DELETE"
-        });
+  async function excluirTarefa(id) {
+    try {
+      const resposta = await fetch(`${API_URL}/tarefa/${id}`, {
+        method: "DELETE"
+      });
 
-        if (!resposta.ok) {
-          throw new Error("Erro ao excluir tarefa");
-        }
+      if (!resposta.ok) throw new Error("Erro ao excluir tarefa");
 
-        mostrarAlerta("🗑️ Tarefa excluída!");
-        setTimeout(() => baixarTarefas(), 300);
-      } catch (err) {
-        console.error("Erro ao excluir:", err);
-        alert("Erro ao excluir tarefa. Veja o console.");
-      }
+      mostrarAlerta("🗑️ Tarefa excluída!");
+
+      setTimeout(() => baixarTarefas(), 300);
+    } catch (err) {
+      console.error("Erro ao excluir:", err);
+      alert("Erro ao excluir tarefa. Veja o console.");
     }
+  }
 
-    // Ping automático para manter o Render ativo
-    setInterval(() => {
-      fetch("https://tarefas-4hbd.onrender.com/ping")
-        .then(() => console.log("🔁 Ping enviado com sucesso"))
-        .catch((error) => console.log("Erro ao enviar ping:", error));
-    }, 30 * 60 * 1000);
+  setInterval(() => {
+    fetch("https://tarefas-4hbd.onrender.com/ping")
+      .then(() => console.log("🔁 Ping enviado com sucesso"))
+      .catch((error) => console.log("Erro ao enviar ping:", error));
+  }, 30 * 60 * 1000);
 
-    baixarTarefas();
-  </script>
-</body>
-</html>
+  baixarTarefas();
+</script>
