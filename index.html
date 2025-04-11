@@ -163,36 +163,45 @@
     });
 
     async function baixarTarefas() {
-      try {
-        const resposta = await fetch(`${API_URL}/tarefas`);
-        const tarefas = await resposta.json();
+  try {
+    const resposta = await fetch(`${API_URL}/tarefas`);
+    const tarefas = await resposta.json();
 
-        const ol = document.getElementById("listaDeTarefas");
-        ol.innerHTML = "";
+    const ol = document.getElementById("listaDeTarefas");
+    ol.innerHTML = "";
 
-        tarefas.forEach((item) => {
-          const li = document.createElement("li");
+    tarefas.forEach((item) => {
+      const li = document.createElement("li");
 
-          const data = new Date(item.criado_em + "Z");
-          const dataFormatada = data.toLocaleString("pt-BR", {
-            timeZone: "America/Sao_Paulo"
-          });
-
-          li.innerHTML = `
-            <div class="tarefa-topo">
-              ${item.categoria === "casa" ? "🏠" : "💻"}
-              <button onclick="excluirTarefa(${item.id})">Excluir</button>
-            </div>
-            <span>${item.tarefa}</span>
-            <small>🕒 ${dataFormatada}</small>
-          `;
-
-          ol.appendChild(li);
-        });
-      } catch (err) {
-        console.error("Erro ao buscar tarefas:", err);
+      let dataFormatada = "Data não disponível";
+      if (item.criado_em) {
+        try {
+          const data = new Date(item.criado_em);
+          if (!isNaN(data.getTime())) {
+            dataFormatada = data.toLocaleString("pt-BR", {
+              timeZone: "America/Sao_Paulo"
+            });
+          }
+        } catch (e) {
+          console.warn("Data inválida:", item.criado_em);
+        }
       }
-    }
+
+      li.innerHTML = `
+        <div class="tarefa-topo">
+          ${item.categoria === "casa" ? "🏠" : "💻"}
+          <button onclick="excluirTarefa(${item.id})">Excluir</button>
+        </div>
+        <span>${item.tarefa}</span>
+        <small>🕒 ${dataFormatada}</small>
+      `;
+
+      ol.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Erro ao buscar tarefas:", err);
+  }
+}
 
     async function excluirTarefa(id) {
       try {
