@@ -116,12 +116,12 @@
     <button type="button" class="salvar" id="btnSalvar">Salvar</button>
   </div>
 
-  <div id="alerta"></div> <!-- Alerta visual -->
+  <div id="alerta"></div>
 
   <ol id="listaDeTarefas"></ol>
 
   <script>
-    const API_URL = "https://tarefas-4hbd.onrender.com";
+    const API_URL = "https://tarefas-4hbd.onrender.com/home";
 
     function mostrarAlerta(mensagem) {
       const alerta = document.getElementById("alerta");
@@ -176,15 +176,8 @@
         tarefas.forEach((item) => {
           const li = document.createElement("li");
 
-          // Corrige o horário para o fuso local do navegador
-          const dataHora = new Date(item.criado_em + 'Z');
-          const dataFormatada = dataHora.toLocaleString("pt-BR", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-          });
+          // Converte a data UTC para horário local
+          const dataFormatada = new Date(item.criado_em).toLocaleString("pt-BR");
 
           li.innerHTML = `
             <div class="tarefa-topo">
@@ -213,7 +206,6 @@
         }
 
         mostrarAlerta("🗑️ Tarefa excluída!");
-
         setTimeout(() => baixarTarefas(), 300);
       } catch (err) {
         console.error("Erro ao excluir:", err);
@@ -221,7 +213,6 @@
       }
     }
 
-    // Ping automático para manter servidor Render ativo
     setInterval(() => {
       fetch("https://tarefas-4hbd.onrender.com/ping")
         .then(() => console.log("🔁 Ping enviado com sucesso"))
