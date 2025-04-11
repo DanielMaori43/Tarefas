@@ -1,40 +1,223 @@
-async function baixarTarefas() {
-  try {
-    const resposta = await fetch(`${API_URL}/tarefas`);
-    const tarefas = await resposta.json();
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Tarefas</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
 
-    const ol = document.getElementById("listaDeTarefas");
-    ol.innerHTML = "";
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
 
-    tarefas.forEach((item) => {
-      const li = document.createElement("li");
+    .alinhar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
 
-      let dataFormatada = "Data não disponível";
-      if (item.criado_em) {
-        try {
-          // Se a data vier no formato ISO (ex: 2025-04-10T21:10:00), isso funciona
-          const dataUTC = new Date(item.criado_em);
-          if (!isNaN(dataUTC.getTime())) {
-            const dataBrasilia = new Date(dataUTC.getTime() - 3 * 60 * 60 * 1000);
-            dataFormatada = dataBrasilia.toLocaleString("pt-BR");
-          }
-        } catch (e) {
-          console.warn("Data inválida:", item.criado_em);
-        }
+    input, select, button {
+      width: 108px;
+      height: 30px;
+      font-size: 16px;
+      padding: 0 10px;
+    }
+
+    button {
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .salvar {
+      background-color: antiquewhite;
+      color: black;
+    }
+
+    ol {
+      background-color: darkgray;
+      color: black;
+      padding: 10px;
+      width: 300px;
+      height: 200px;
+      overflow-y: auto;
+      box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
+      border: solid 3px rgb(74, 74, 74);
+      font-size: 20px;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    span {
+      flex-grow: 1;
+      margin-left: 8px;
+    }
+
+    .tarefa-topo {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    small {
+      font-size: 12px;
+      color: #444;
+    }
+
+    #alerta {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+      font-weight: bold;
+      z-index: 999;
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; top: 10px; }
+      to { opacity: 1; top: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Lista de Tarefas</h1>
+
+  <div class="alinhar">
+    <input type="text" id="tarefa" placeholder="Digite a tarefa" />
+    <select id="categoria">
+      <option value="trabalho">Trabalho</option>
+      <option value="casa">Casa</option>
+    </select>
+    <button type="button" class="salvar" id="btnSalvar">Salvar</button>
+  </div>
+
+  <div id="alerta"></div>
+
+  <ol id="listaDeTarefas"></ol>
+
+  <script>
+    const API_URL = "https://tarefas-4hbd.onrender.com";
+
+    function mostrarAlerta(mensagem) {
+      const alerta = document.getElementById("alerta");
+      alerta.innerText = mensagem;
+      alerta.style.display = "block";
+      setTimeout(() => {
+        alerta.style.display = "none";
+      }, 3000);
+    }
+
+    document.getElementById("btnSalvar").addEventListener("click", async () => {
+      const tarefa = document.getElementById("tarefa").value.trim();
+      const categoria = document.getElementById("categoria").value;
+
+      if (!tarefa) {
+        alert("Digite uma tarefa!");
+        return;
       }
 
-      li.innerHTML = `
-        <div class="tarefa-topo">
-          ${item.categoria === "casa" ? "🏠" : "💻"}
-          <button onclick="excluirTarefa(${item.id})">Excluir</button>
-        </div>
-        <span>${item.tarefa}</span>
-        <small>🕒 ${dataFormatada}</small>
-      `;
+      try {
+        const resposta = await fetch(`${API_URL}/tarefa`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ tarefa, categoria })
+        });
 
-      ol.appendChild(li);
+        if (!resposta.ok) throw new Error("Erro ao salvar tarefa");
+
+        document.getElementById("tarefa").value = "";
+        mostrarAlerta("✅ Tarefa salva com sucesso!");
+
+        setTimeout(() => baixarTarefas(), 300);
+      } catch (err) {
+        console.error("Erro:", err);
+        alert("Erro ao salvar tarefa. Veja o console.");
+      }
     });
-  } catch (err) {
-    console.error("Erro ao buscar tarefas:", err);
-  }
-}
+
+    async function baixarTarefas() {
+      try {
+        const resposta = await fetch(`${API_URL}/tarefas`);
+        const tarefas = await resposta.json();
+
+        const ol = document.getElementById("listaDeTarefas");
+        ol.innerHTML = "";
+
+        tarefas.forEach((item) => {
+          const li = document.createElement("li");
+
+          const data = new Date(item.criado_em + "Z");
+          const dataFormatada = data.toLocaleString("pt-BR", {
+            timeZone: "America/Sao_Paulo"
+          });
+
+          li.innerHTML = `
+            <div class="tarefa-topo">
+              ${item.categoria === "casa" ? "🏠" : "💻"}
+              <button onclick="excluirTarefa(${item.id})">Excluir</button>
+            </div>
+            <span>${item.tarefa}</span>
+            <small>🕒 ${dataFormatada}</small>
+          `;
+
+          ol.appendChild(li);
+        });
+      } catch (err) {
+        console.error("Erro ao buscar tarefas:", err);
+      }
+    }
+
+    async function excluirTarefa(id) {
+      try {
+        const resposta = await fetch(`${API_URL}/tarefa/${id}`, {
+          method: "DELETE"
+        });
+
+        if (!resposta.ok) throw new Error("Erro ao excluir tarefa");
+
+        mostrarAlerta("🗑️ Tarefa excluída!");
+
+        setTimeout(() => baixarTarefas(), 300);
+      } catch (err) {
+        console.error("Erro ao excluir:", err);
+        alert("Erro ao excluir tarefa. Veja o console.");
+      }
+    }
+
+    setInterval(() => {
+      fetch(`${API_URL}/ping`)
+        .then(() => console.log("🔁 Ping enviado com sucesso"))
+        .catch((error) => console.log("Erro ao enviar ping:", error));
+    }, 30 * 60 * 1000);
+
+    baixarTarefas();
+  </script>
+</body>
+</html>
