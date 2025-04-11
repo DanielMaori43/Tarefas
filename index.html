@@ -4,104 +4,143 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lista de Tarefas</title>
-  <style>
+ <style>
+  body {
+    background-color: black;
+    color: white;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .alinhar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+
+  input, select, button {
+    width: 120px;
+    height: 35px;
+    font-size: 16px;
+    padding: 0 10px;
+  }
+
+  button {
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  .salvar {
+    background-color: antiquewhite;
+    color: black;
+  }
+
+  ol {
+    background-color: darkgray;
+    color: black;
+    padding: 10px;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
+    border: solid 3px rgb(74, 74, 74);
+    font-size: 18px;
+    border-radius: 10px;
+  }
+
+  li {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    background: #eee;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .tarefa-topo {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  span {
+    margin-left: 4px;
+    word-break: break-word;
+  }
+
+  small {
+    font-size: 12px;
+    color: #444;
+    margin-top: 4px;
+  }
+
+  #alerta {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    font-weight: bold;
+    z-index: 999;
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; top: 10px; }
+    to { opacity: 1; top: 20px; }
+  }
+
+  /* Responsividade */
+  @media (max-width: 500px) {
     body {
-      background-color: black;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      padding: 10px;
     }
 
     h1 {
-      font-size: 48px;
-      margin-bottom: 20px;
-    }
-
-    .alinhar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+      font-size: 32px;
     }
 
     input, select, button {
-      width: 108px;
-      height: 30px;
-      font-size: 16px;
-      padding: 0 10px;
-    }
-
-    button {
-      background-color: red;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    .salvar {
-      background-color: antiquewhite;
-      color: black;
-    }
-
-    ol {
-      background-color: darkgray;
-      color: black;
-      padding: 10px;
-      width: 300px;
-      height: 200px;
-      overflow-y: auto;
-      box-shadow: 10px 14px 6px rgba(241, 243, 242, 0.2);
-      border: solid 3px rgb(74, 74, 74);
-      font-size: 20px;
-    }
-
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    span {
-      flex-grow: 1;
-      margin-left: 8px;
-    }
-
-    .tarefa-topo {
-      display: flex;
-      justify-content: space-between;
       width: 100%;
     }
 
-    small {
-      font-size: 12px;
-      color: #444;
+    .alinhar {
+      flex-direction: column;
+      align-items: stretch;
     }
 
-    #alerta {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-      font-weight: bold;
-      z-index: 999;
-      display: none;
-      animation: fadeIn 0.5s ease;
+    ol {
+      width: 100%;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; top: 10px; }
-      to { opacity: 1; top: 20px; }
+    .tarefa-topo {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
     }
-  </style>
+  }
+</style>
+
 </head>
 <body>
 
