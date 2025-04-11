@@ -17,23 +17,23 @@ app.listen(8080, () => {
   console.log("🚀 Servidor rodando na porta 8080");
 });
 
-// Garante que a coluna criado_em exista
-db.serialize(() => {
-  db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
-    if (err) return console.error("Erro ao verificar colunas:", err);
+// Criação da coluna criado_em, se ainda não existir
+db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
+  if (err) return console.error("Erro ao verificar colunas:", err);
+  const existeCriadoEm = columns.some(col => col.name === "criado_em");
 
-    const existeCriadoEm = columns.some(col => col.name === "criado_em");
-
-    if (!existeCriadoEm) {
-      db.run(`ALTER TABLE Tarefas ADD COLUMN criado_em TEXT`, (err) => {
+  if (!existeCriadoEm) {
+    db.run(
+      `ALTER TABLE Tarefas ADD COLUMN criado_em TEXT DEFAULT (datetime('now'))`,
+      (err) => {
         if (err) {
           console.error("Erro ao adicionar coluna 'criado_em':", err.message);
         } else {
           console.log("✅ Coluna 'criado_em' adicionada com sucesso.");
         }
-      });
-    }
-  });
+      }
+    );
+  }
 });
 
 app.get("/tarefas", (req, res) => {
@@ -53,11 +53,9 @@ app.post("/tarefa", (req, res) => {
     return res.status(400).json({ erro: "Dados inválidos" });
   }
 
-  const criado_em = new Date().toLocaleString("pt-BR"); // formato local brasileiro
-
   db.run(
-    `INSERT INTO Tarefas (tarefa, categoria, criado_em) VALUES (?, ?, ?)`,
-    [tarefa, categoria, criado_em],
+    `INSERT INTO Tarefas (tarefa, categoria) VALUES (?, ?)`,
+    [tarefa, categoria],
     function (err) {
       if (err) {
         console.error(err);
@@ -100,4 +98,4 @@ setInterval(() => {
     .get("https://tarefas-4hbd.onrender.com/ping")
     .then(() => console.log("🔁 Ping enviado com sucesso"))
     .catch((err) => console.log("Erro ao enviar ping:", err.message));
-}, 30 * 60 * 1000); // A cada 30 minutos
+}, 30 * 60 * 1000);
