@@ -17,23 +17,29 @@ app.listen(8080, () => {
   console.log("🚀 Servidor rodando na porta 8080");
 });
 
-// Criação da coluna criado_em, se ainda não existir
-db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
-  if (err) return console.error("Erro ao verificar colunas:", err);
-  const existeCriadoEm = columns.some(col => col.name === "criado_em");
+// Verifica e adiciona a coluna criado_em se necessário
+db.serialize(() => {
+  db.all(`PRAGMA table_info(Tarefas)`, (err, columns) => {
+    if (err) return console.error("Erro ao verificar colunas:", err.message);
 
-  if (!existeCriadoEm) {
-    db.run(
-      `ALTER TABLE Tarefas ADD COLUMN criado_em TEXT DEFAULT (datetime('now'))`,
-      (err) => {
+    const existeCriadoEm = columns.some(col => col.name === "criado_em");
+
+    if (!existeCriadoEm) {
+      // Adiciona a coluna sem DEFAULT
+      db.run(`ALTER TABLE Tarefas ADD COLUMN criado_em TEXT`, (err) => {
         if (err) {
-          console.error("Erro ao adicionar coluna 'criado_em':", err.message);
-        } else {
-          console.log("✅ Coluna 'criado_em' adicionada com sucesso.");
+          return console.error("Erro ao adicionar coluna criado_em:", err.message);
         }
-      }
-    );
-  }
+
+        // Atualiza os registros existentes com datetime atual
+        const agora = new Date().toISOString();
+        db.run(`UPDATE Tarefas SET criado_em = ? WHERE criado_em IS NULL`, [agora], (err) => {
+          if (err) return console.error("Erro ao atualizar registros:", err.message);
+          console.log("✅ Coluna criado_em adicionada e registros atualizados.");
+        });
+      });
+    }
+  });
 });
 
 app.get("/tarefas", (req, res) => {
@@ -53,9 +59,11 @@ app.post("/tarefa", (req, res) => {
     return res.status(400).json({ erro: "Dados inválidos" });
   }
 
+  const criado_em = new Date().toISOString();
+
   db.run(
-    `INSERT INTO Tarefas (tarefa, categoria) VALUES (?, ?)`,
-    [tarefa, categoria],
+    `INSERT INTO Tarefas (tarefa, categoria, criado_em) VALUES (?, ?, ?)`,
+    [tarefa, categoria, criado_em],
     function (err) {
       if (err) {
         console.error(err);
@@ -87,15 +95,13 @@ app.get("/home", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Endpoint de ping
 app.get("/ping", (req, res) => {
   res.status(200).json({ message: "Pong" });
 });
 
-// Ping automático para manter o Render acordado
 setInterval(() => {
   axios
     .get("https://tarefas-4hbd.onrender.com/ping")
     .then(() => console.log("🔁 Ping enviado com sucesso"))
     .catch((err) => console.log("Erro ao enviar ping:", err.message));
-}, 30 * 60 * 1000);
+}, 30 * 60 * 1000); // A cada 30 minutos
