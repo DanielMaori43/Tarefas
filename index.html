@@ -66,22 +66,21 @@
       align-items: flex-start;
     }
 
-    .tarefa-header {
+    .topo-tarefa {
       display: flex;
-      width: 100%;
       justify-content: space-between;
-      align-items: center;
-    }
-
-    .data {
-      font-size: 12px;
-      color: #333;
-      margin-top: 2px;
+      width: 100%;
     }
 
     span {
       flex-grow: 1;
       margin-left: 8px;
+    }
+
+    .data {
+      font-size: 12px;
+      color: #333;
+      margin-left: 28px;
     }
 
     #alerta {
@@ -118,12 +117,12 @@
     <button type="button" class="salvar" id="btnSalvar">Salvar</button>
   </div>
 
-  <div id="alerta"></div> <!-- Alerta visual -->
+  <div id="alerta"></div>
 
   <ol id="listaDeTarefas"></ol>
 
   <script>
-    const API_URL = "https://tarefas-4hbd.onrender.com/home";
+    const API_URL = "https://tarefas-4hbd.onrender.com";
 
     function mostrarAlerta(mensagem) {
       const alerta = document.getElementById("alerta");
@@ -147,15 +146,11 @@
       try {
         const resposta = await fetch(`${API_URL}/tarefa`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tarefa, categoria })
         });
 
-        if (!resposta.ok) {
-          throw new Error("Erro ao salvar tarefa");
-        }
+        if (!resposta.ok) throw new Error("Erro ao salvar tarefa");
 
         document.getElementById("tarefa").value = "";
         mostrarAlerta("✅ Tarefa salva com sucesso!");
@@ -165,16 +160,6 @@
         alert("Erro ao salvar tarefa. Veja o console.");
       }
     });
-
-    function formatarData(dataBruta) {
-      const data = new Date(dataBruta);
-      const dia = String(data.getDate()).padStart(2, '0');
-      const mes = String(data.getMonth() + 1).padStart(2, '0');
-      const ano = data.getFullYear();
-      const hora = String(data.getHours()).padStart(2, '0');
-      const minuto = String(data.getMinutes()).padStart(2, '0');
-      return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
-    }
 
     async function baixarTarefas() {
       try {
@@ -187,12 +172,12 @@
         tarefas.forEach((item) => {
           const li = document.createElement("li");
           li.innerHTML = `
-            <div class="tarefa-header">
+            <div class="topo-tarefa">
               ${item.categoria === "casa" ? "🏠" : "💻"}
               <span>${item.tarefa}</span>
               <button onclick="excluirTarefa(${item.id})">Excluir</button>
             </div>
-            <div class="data">${formatarData(item.criado_em)}</div>
+            <div class="data">${item.criado_em ? formatarData(item.criado_em) : ""}</div>
           `;
           ol.appendChild(li);
         });
@@ -201,15 +186,18 @@
       }
     }
 
+    function formatarData(dataStr) {
+      const data = new Date(dataStr);
+      return `${data.toLocaleDateString()} ${data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
     async function excluirTarefa(id) {
       try {
         const resposta = await fetch(`${API_URL}/tarefa/${id}`, {
           method: "DELETE"
         });
 
-        if (!resposta.ok) {
-          throw new Error("Erro ao excluir tarefa");
-        }
+        if (!resposta.ok) throw new Error("Erro ao excluir tarefa");
 
         mostrarAlerta("🗑️ Tarefa excluída!");
         setTimeout(() => baixarTarefas(), 300);
