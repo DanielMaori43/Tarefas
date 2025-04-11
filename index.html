@@ -23,22 +23,31 @@
 
   .alinhar {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 20px;
-  width: 100%;
-  max-width: 300px;
+  justify-content: center;
 }
+
 input, select, button {
   height: 36px;
   font-size: 16px;
   padding: 0 10px;
-  width: 100%;
   box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
+input {
+  width: 160px; /* Ajuste proporcional */
+}
+
+select {
+  width: 120px;
+}
 
 button {
+  width: 100px;
   background-color: red;
   color: white;
   border: none;
@@ -48,6 +57,18 @@ button {
 .salvar {
   background-color: antiquewhite;
   color: black;
+}
+
+/* Responsivo: em telas menores, empilha */
+@media (max-width: 600px) {
+  .alinhar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  input, select, button {
+    width: 100%;
+  }
 }
 
   ol {
@@ -143,6 +164,7 @@ button {
     }
   }
 </style>
+
 </head>
 <body>
 
