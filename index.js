@@ -10,6 +10,7 @@ const db = new sqlite3.Database("./db.sqlite");
 const cron = required("node-cron")
 const nodefetch = required("node-fetch")
 const url = 'https://tarefas-4hbd.onrender.com/home'
+var cron = require('node-cron');
 app.use(cors());
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
