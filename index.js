@@ -7,7 +7,9 @@ const path = require("path");
 
 const app = express();
 const db = new sqlite3.Database("./db.sqlite");
-
+const cron = required("node-cron")
+const nodefetch = required("node-fetch")
+const url = 'https://tarefas-4hbd.onrender.com/home'
 app.use(cors());
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
@@ -92,9 +94,8 @@ app.get("/ping", (req, res) => {
   res.status(200).json({ message: "Pong" });
 });
 
-// Ping para o Render
-setInterval(() => {
-  axios.get("https://tarefas-4hbd.onrender.com/ping")
-    .then(() => console.log("🔁 Ping enviado com sucesso"))
-    .catch((err) => console.log("Erro ao enviar ping:", err.message));
-}, 30 * 60 * 1000);
+cron.schedule('*/14 * * * *', async () =>{
+    const res = await fetch(url);
+    const status =- res.status; 
+}
+  )
