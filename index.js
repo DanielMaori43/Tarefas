@@ -7,8 +7,8 @@ const path = require("path");
 
 const app = express();
 const db = new sqlite3.Database("./db.sqlite");
-const cron = required("node-cron")
-const nodefetch = required("node-fetch")
+const cron = require("node-cron")
+const nodefetch = require("node-fetch")
 const url = 'https://tarefas-4hbd.onrender.com/home'
 app.use(cors());
 app.use(bp.json());
